@@ -1,5 +1,5 @@
 [package]
-name = "just"
+name = "jt"
 version = "1.43.0+telemetry"
 authors = ["Casey Rodarmor <casey@rodarmor.com>"]
 autotests = false

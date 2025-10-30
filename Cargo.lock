@@ -970,7 +970,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "just"
+name = "jt"
 version = "1.43.0+telemetry"
 dependencies = [
  "ansi_term",
