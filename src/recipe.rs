@@ -205,9 +205,17 @@ impl<'src, D> Recipe<'src, D> {
     let evaluator = Evaluator::new(context, is_dependency, scope);
 
     if self.is_script() {
-      self.run_script(context, scope, positional, evaluator)
+      let span = sentry::configure_scope(|scope| scope.get_span())
+        .map(|parent| parent.start_child(self.name.to_string().as_str(), "subprocess"));
+      let r = self.run_script(context, scope, positional, evaluator);
+      span.map(|span| span.finish());
+      r
     } else {
-      self.run_linewise(context, scope, positional, evaluator)
+      let span = sentry::configure_scope(|scope| scope.get_span())
+        .map(|parent| parent.start_child(self.name.to_string().as_str(), "function"));
+      let r = self.run_linewise(context, scope, positional, evaluator);
+      span.map(|span| span.finish());
+      r
     }
   }
 
@@ -321,7 +329,10 @@ impl<'src, D> Recipe<'src, D> {
         &context.module.unexports,
       );
 
+      let span = sentry::configure_scope(|scope| scope.get_span())
+        .map(|parent| parent.start_child(&format!("{cmd:?}"), "subprocess"));
       let (result, caught) = cmd.status_guard();
+      span.map(|span| span.finish());
 
       match result {
         Ok(exit_status) => {
