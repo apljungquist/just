@@ -25,15 +25,36 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     err.exit_code()
   })?;
 
-  let config = Config::from_matches(&matches).map_err(Error::from);
+  let config = dbg!(Config::from_matches(&matches).map_err(Error::from));
 
-  let (color, verbosity, subcommand_name) = config
+  let (color, verbosity, path, subcommand_name) = config
     .as_ref()
-    .map(|config| (config.color, config.verbosity, config.subcommand.name()))
+    .map(|config| {
+      (
+        config.color,
+        config.verbosity,
+        match &config.search_config {
+          SearchConfig::FromInvocationDirectory => config.invocation_directory.clone(),
+          SearchConfig::FromSearchDirectory { search_directory } => search_directory.clone(),
+          SearchConfig::GlobalJustfile => Default::default(),
+          SearchConfig::WithJustfile { justfile } => justfile.clone(),
+          SearchConfig::WithJustfileAndWorkingDirectory { justfile, .. } => justfile.clone(),
+        },
+        config.subcommand.name(),
+      )
+    })
     .unwrap_or_default();
 
+  // Truncate path to make it independent of where the repository is located.
+  // This will be unambiguous as long as directories with `justfile`s have unique names.
+  // TODO: Consider getting path relative to repository root
+  let path = dbg!(dbg!(&path)
+    .file_name()
+    .unwrap_or_default()
+    .to_string_lossy());
+  let path_and_command = format!("{subcommand_name} ({path})");
   // Start a transaction/span if Sentry is enabled
-  let ctx = sentry::TransactionContext::new(&subcommand_name, "ui.action");
+  let ctx = sentry::TransactionContext::new(&path_and_command, "ui.action");
   let transaction = sentry::start_transaction(ctx);
 
   // Bind transaction to current scope and set user
@@ -71,7 +92,7 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     sentry::capture_message(
       &format!(
         "Command failed with exit code {}: {}",
-        code, subcommand_name
+        code, path_and_command
       ),
       sentry::Level::Warning,
     );
@@ -86,7 +107,7 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
 
   transaction.set_status(sentry::protocol::SpanStatus::Ok);
   sentry::capture_message(
-    &format!("Command succeeded: {}", subcommand_name),
+    &format!("Command succeeded: {}", path_and_command),
     sentry::Level::Info,
   );
   transaction.finish();
