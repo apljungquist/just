@@ -7,19 +7,16 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
   ansi_term::enable_ansi_support().ok();
 
   // Initialize Sentry if DX_DSN is set
-  let _sentry_guard = std::env::var("DX_DSN")
-    .ok()
-    .filter(|dsn| !dsn.is_empty())
-    .map(|dsn| {
-      sentry::init((
-        dsn,
-        sentry::ClientOptions {
-          release: sentry::release_name!(),
-          traces_sample_rate: 1.0,
-          ..Default::default()
-        },
-      ))
-    });
+  let _sentry_guard = odx::dsn().ok().filter(|dsn| !dsn.is_empty()).map(|dsn| {
+    sentry::init((
+      dsn,
+      sentry::ClientOptions {
+        release: sentry::release_name!(),
+        traces_sample_rate: 1.0,
+        ..Default::default()
+      },
+    ))
+  });
 
   let app = Config::app();
 
