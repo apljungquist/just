@@ -234,3 +234,17 @@ test-release-workflow:
 # mode: makefile
 # End:
 # vim: set ft=make :
+
+
+a:
+    echo Alpha
+
+b: a && c
+    echo B
+    echo r
+    echo a
+    echo v
+    echo o
+
+c:
+    echo Charlie
