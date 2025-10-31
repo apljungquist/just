@@ -92,7 +92,7 @@ doctest = false
 
 [[bin]]
 path = "src/main.rs"
-name = "jt"
+name = "just"
 test = false
 
 # The public documentation is minimal and doesn't change between
