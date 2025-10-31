@@ -25,7 +25,7 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     err.exit_code()
   })?;
 
-  let config = dbg!(Config::from_matches(&matches).map_err(Error::from));
+  let config = Config::from_matches(&matches).map_err(Error::from);
 
   let (color, verbosity, path, subcommand_name) = config
     .as_ref()
@@ -48,10 +48,10 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
   // Truncate path to make it independent of where the repository is located.
   // This will be unambiguous as long as directories with `justfile`s have unique names.
   // TODO: Consider getting path relative to repository root
-  let path = dbg!(dbg!(&path)
+  let path = path
     .file_name()
     .unwrap_or_default()
-    .to_string_lossy());
+    .to_string_lossy();
   let path_and_command = format!("{subcommand_name} ({path})");
   // Start a transaction/span if Sentry is enabled
   let ctx = sentry::TransactionContext::new(&path_and_command, "ui.action");
