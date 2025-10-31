@@ -329,8 +329,14 @@ impl<'src, D> Recipe<'src, D> {
         &context.module.unexports,
       );
 
+
+      let mut span_name = cmd.get_program().to_string_lossy().to_string();
+      for arg in cmd.get_args() {
+        span_name.push(' ');
+        span_name.push_str(&arg.to_string_lossy());
+      }
       let span = sentry::configure_scope(|scope| scope.get_span())
-        .map(|parent| parent.start_child(&format!("{cmd:?}"), "subprocess"));
+        .map(|parent| parent.start_child(&span_name, "subprocess"));
       let (result, caught) = cmd.status_guard();
       span.map(|span| span.finish());
 
