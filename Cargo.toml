@@ -1,6 +1,6 @@
 [package]
 name = "just"
-version = "1.43.0+telemetry"
+version = "1.43.0-telemetry.1"
 authors = ["Casey Rodarmor <casey@rodarmor.com>"]
 autotests = false
 categories = ["command-line-utilities", "development-tools"]

@@ -18,6 +18,8 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     ))
   });
 
+  sentry::capture_message("Sentry initialized", sentry::Level::Info);
+
   let app = Config::app();
 
   let matches = app.try_get_matches_from(args).map_err(|err| {
@@ -48,10 +50,7 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
   // Truncate path to make it independent of where the repository is located.
   // This will be unambiguous as long as directories with `justfile`s have unique names.
   // TODO: Consider getting path relative to repository root
-  let path = path
-    .file_name()
-    .unwrap_or_default()
-    .to_string_lossy();
+  let path = path.file_name().unwrap_or_default().to_string_lossy();
   let path_and_command = format!("{subcommand_name} ({path})");
   // Start a transaction/span if Sentry is enabled
   let ctx = sentry::TransactionContext::new(&path_and_command, "ui.action");

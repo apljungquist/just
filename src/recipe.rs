@@ -329,7 +329,6 @@ impl<'src, D> Recipe<'src, D> {
         &context.module.unexports,
       );
 
-
       let mut span_name = cmd.get_program().to_string_lossy().to_string();
       for arg in cmd.get_args() {
         span_name.push(' ');
