@@ -971,7 +971,7 @@ dependencies = [
 
 [[package]]
 name = "just"
-version = "1.43.0+telemetry"
+version = "1.43.0-telemetry.1"
 dependencies = [
  "ansi_term",
  "blake3",

@@ -18,7 +18,6 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     ))
   });
 
-  sentry::capture_message("Sentry initialized", sentry::Level::Info);
 
   let app = Config::app();
 
@@ -71,6 +70,8 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
       }));
     }
   });
+
+  sentry::capture_message("Sentry initialized", sentry::Level::Info);
 
   let loader = Loader::new();
 
