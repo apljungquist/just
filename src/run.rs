@@ -18,7 +18,6 @@ pub fn run(args: impl Iterator<Item = impl Into<OsString> + Clone>) -> Result<()
     ))
   });
 
-
   let app = Config::app();
 
   let matches = app.try_get_matches_from(args).map_err(|err| {

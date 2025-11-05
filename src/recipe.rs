@@ -206,13 +206,13 @@ impl<'src, D> Recipe<'src, D> {
 
     if self.is_script() {
       let span = sentry::configure_scope(|scope| scope.get_span())
-        .map(|parent| parent.start_child(self.name.to_string().as_str(), "subprocess"));
+        .map(|parent| parent.start_child("subprocess", self.name.to_string().as_str()));
       let r = self.run_script(context, scope, positional, evaluator);
       span.map(|span| span.finish());
       r
     } else {
       let span = sentry::configure_scope(|scope| scope.get_span())
-        .map(|parent| parent.start_child(self.name.to_string().as_str(), "function"));
+        .map(|parent| parent.start_child("function", self.name.to_string().as_str()));
       let r = self.run_linewise(context, scope, positional, evaluator);
       span.map(|span| span.finish());
       r
@@ -329,13 +329,13 @@ impl<'src, D> Recipe<'src, D> {
         &context.module.unexports,
       );
 
-      let mut span_name = cmd.get_program().to_string_lossy().to_string();
+      let mut span_description = cmd.get_program().to_string_lossy().to_string();
       for arg in cmd.get_args() {
-        span_name.push(' ');
-        span_name.push_str(&arg.to_string_lossy());
+        span_description.push(' ');
+        span_description.push_str(&arg.to_string_lossy());
       }
       let span = sentry::configure_scope(|scope| scope.get_span())
-        .map(|parent| parent.start_child(&span_name, "subprocess"));
+        .map(|parent| parent.start_child("subprocess", &span_description));
       let (result, caught) = cmd.status_guard();
       span.map(|span| span.finish());
 
