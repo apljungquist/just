@@ -219,6 +219,7 @@ mod fragment;
 mod function;
 mod interpreter;
 mod item;
+mod just_odx;
 mod justfile;
 mod keyed;
 mod keyword;

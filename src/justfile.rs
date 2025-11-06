@@ -1,3 +1,5 @@
+use crate::just_odx::{path_from_repository_root, Transaction};
+use similar::DiffableStr;
 use {super::*, serde::Serialize};
 
 #[derive(Debug)]
@@ -226,9 +228,25 @@ impl<'src> Justfile<'src> {
       });
     }
 
+    let namespace = match self.source.parent().and_then(path_from_repository_root) {
+      None => Cow::Borrowed(""),
+      Some(p) => p.to_string_lossy(),
+    };
+    let namepath = invocations
+      .get(0)
+      .and_then(|invocation| invocation.recipe.namepath.as_ref());
+    let recipe = match (namepath, invocations.len()) {
+      (None, 1) => String::new(),
+      (None, n) => format!("+{}", n - 1),
+      (Some(s), 1) => format!("{s}"),
+      (Some(s), n) => format!("{s} +{}", n - 1),
+    };
+    let _guard = just_odx::guard();
+    let transaction = Transaction::new(format!("{namespace}:{recipe}"));
+
     let ran = Ran::default();
     for invocation in invocations {
-      Self::run_recipe(
+      let r = Self::run_recipe(
         &invocation
           .arguments
           .iter()
@@ -242,9 +260,16 @@ impl<'src> Justfile<'src> {
         invocation.recipe,
         &scopes,
         search,
-      )?;
+      );
+      match r {
+        Ok(()) => {}
+        Err(e) => {
+          transaction.fail(e.code());
+          return Err(e);
+        }
+      }
     }
-
+    transaction.pass();
     Ok(())
   }
 

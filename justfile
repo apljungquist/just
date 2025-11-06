@@ -239,12 +239,13 @@ test-release-workflow:
 a:
     echo Alpha
 
-b: a && c
+b *args: a && c
     echo B
     echo r
     echo a
     echo v
     echo o
+    echo {{args}}
 
 c:
     echo Charlie
