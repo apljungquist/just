@@ -1,6 +1,5 @@
 use sentry::ClientInitGuard;
-use std::borrow::Cow;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 fn repository_root(start: &Path) -> Option<&Path> {
   for path in start.ancestors() {
@@ -69,7 +68,6 @@ impl Transaction {
     sentry::capture_message(&msg, sentry::Level::Warning);
     transaction.set_status(sentry::protocol::SpanStatus::UnknownError);
     transaction.finish();
-    println!("FAIL");
   }
 
   pub fn pass(self) {
@@ -77,6 +75,5 @@ impl Transaction {
     transaction.set_status(sentry::protocol::SpanStatus::Ok);
     sentry::capture_message(&format!("{name} succeeded"), sentry::Level::Info);
     transaction.finish();
-    println!("PASS");
   }
 }

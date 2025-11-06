@@ -1,5 +1,4 @@
 use crate::just_odx::{path_from_repository_root, Transaction};
-use similar::DiffableStr;
 use {super::*, serde::Serialize};
 
 #[derive(Debug)]

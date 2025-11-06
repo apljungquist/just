@@ -55,42 +55,6 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn name(&self) -> String {
-    use Subcommand::*;
-
-    match self {
-      Changelog => "changelog".to_string(),
-      Choose { .. } => "choose".to_string(),
-      Command { .. } => "command".to_string(),
-      Completions { .. } => "completions".to_string(),
-      Dump => "dump".to_string(),
-      Edit => "edit".to_string(),
-      Evaluate { variable, .. } => {
-        if let Some(var) = variable {
-          format!("evaluate {}", var)
-        } else {
-          "evaluate".to_string()
-        }
-      }
-      Format => "format".to_string(),
-      Groups => "groups".to_string(),
-      Init => "init".to_string(),
-      List { .. } => "list".to_string(),
-      Man => "man".to_string(),
-      Request { .. } => "request".to_string(),
-      Run { arguments, .. } => {
-        if arguments.is_empty() {
-          "run".to_string()
-        } else {
-          arguments.join(" ")
-        }
-      }
-      Show { .. } => "show".to_string(),
-      Summary => "summary".to_string(),
-      Variables => "variables".to_string(),
-    }
-  }
-
   pub(crate) fn execute<'src>(&self, config: &Config, loader: &'src Loader) -> RunResult<'src> {
     use Subcommand::*;
 
