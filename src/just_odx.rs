@@ -1,5 +1,6 @@
+use log::error;
 use sentry::ClientInitGuard;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 fn repository_root(start: &Path) -> Option<&Path> {
   for path in start.ancestors() {
@@ -52,6 +53,13 @@ impl Transaction {
           username: Some(username),
           ..Default::default()
         }));
+      }
+
+      if let Ok(shell) = std::env::var("SHELL") {
+        match PathBuf::from(shell).file_name() {
+          None => error!("SHELL does not have a file name"),
+          Some(name) => scope.set_tag("shell", name.to_string_lossy()),
+        }
       }
     });
 

@@ -1,6 +1,6 @@
 [package]
 name = "just"
-version = "1.43.0-telemetry.3"
+version = "1.43.0-telemetry.4"
 authors = ["Casey Rodarmor <casey@rodarmor.com>"]
 autotests = false
 categories = ["command-line-utilities", "development-tools"]
@@ -32,6 +32,7 @@ heck = "0.5.0"
 is_executable = "1.0.4"
 lexiclean = "0.0.1"
 libc = "0.2.0"
+log = "0.4.28"
 num_cpus = "1.15.0"
 odx.path = "crates/odx"
 percent-encoding = "2.3.1"
