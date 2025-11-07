@@ -1,6 +1,8 @@
-use log::error;
+use log::{error, warn};
 use sentry::ClientInitGuard;
+use serde_json::Value;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn repository_root(start: &Path) -> Option<&Path> {
   for path in start.ancestors() {
@@ -16,6 +18,17 @@ pub fn path_from_repository_root(path: &Path) -> Option<&Path> {
     Some(p) => Some(path.strip_prefix(p).unwrap()),
     None => None,
   }
+}
+
+fn git_describe() -> Option<String> {
+  let output = Command::new("git")
+    .args(["describe", "--dirty", "--tags"])
+    .output()
+    .inspect_err(|e| warn!("Could not get git commit: {e:?}"))
+    .ok()?;
+  String::from_utf8(output.stdout)
+    .inspect_err(|e| warn!("Could not parse git commit: {e:?}"))
+    .ok()
 }
 
 #[must_use]
@@ -60,6 +73,10 @@ impl Transaction {
           None => error!("SHELL does not have a file name"),
           Some(name) => scope.set_tag("shell", name.to_string_lossy()),
         }
+      }
+
+      if let Some(commit) = git_describe() {
+        scope.set_extra("commit", Value::String(commit));
       }
     });
 
