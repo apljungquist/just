@@ -1,3 +1,6 @@
+use crate::color::Color;
+use crate::color_display::ColorDisplay;
+use crate::error::Error;
 use log::{error, warn};
 use sentry::ClientInitGuard;
 use serde_json::Value;
@@ -46,7 +49,7 @@ pub fn guard() -> Option<ClientInitGuard> {
 }
 
 pub struct Transaction {
-  transaction: sentry::Transaction,
+  transaction: Option<sentry::Transaction>,
   name: String,
 }
 
@@ -81,24 +84,53 @@ impl Transaction {
     });
 
     sentry::capture_message("Sentry initialized", sentry::Level::Info);
-    Self { transaction, name }
+    sentry::capture_message(&format!("{name} started"), sentry::Level::Info);
+    Self {
+      transaction: Some(transaction),
+      name,
+    }
   }
 
-  pub fn fail(self, code: Option<i32>) {
-    let Self { transaction, name } = self;
-    let msg = match code {
-      None => format!("{name} failed"),
-      Some(code) => format!("{name} failed ({code})"),
-    };
-    sentry::capture_message(&msg, sentry::Level::Warning);
-    transaction.set_status(sentry::protocol::SpanStatus::UnknownError);
+  pub fn fail(mut self, e: &Error) {
+    let Self { transaction, name } = &mut self;
+    let transaction = transaction.take().unwrap();
+
+    sentry::capture_message(
+      e.color_display(Color::never()).to_string().as_str(),
+      sentry::Level::Info,
+    );
+    match e {
+      Error::Signal { .. } => {
+        sentry::capture_message(&format!("{name} terminated"), sentry::Level::Warning);
+        transaction.set_status(sentry::protocol::SpanStatus::Aborted);
+      }
+      e => {
+        let msg = match e.code() {
+          None => format!("{name} failed"),
+          Some(code) => format!("{name} failed ({code})"),
+        };
+        sentry::capture_message(&msg, sentry::Level::Warning);
+        transaction.set_status(sentry::protocol::SpanStatus::UnknownError);
+      }
+    }
     transaction.finish();
   }
 
-  pub fn pass(self) {
-    let Self { transaction, name } = self;
+  pub fn pass(mut self) {
+    let Self { transaction, name } = &mut self;
+    let transaction = transaction.take().unwrap();
     transaction.set_status(sentry::protocol::SpanStatus::Ok);
+    // TODO: Consider removing; can be inferred.
     sentry::capture_message(&format!("{name} succeeded"), sentry::Level::Info);
     transaction.finish();
+  }
+}
+
+impl Drop for Transaction {
+  fn drop(&mut self) {
+    if let Some(transaction) = self.transaction.take() {
+      sentry::capture_message("Transaction was never consumed", sentry::Level::Error);
+      transaction.finish();
+    }
   }
 }

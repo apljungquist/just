@@ -263,7 +263,7 @@ impl<'src> Justfile<'src> {
       match r {
         Ok(()) => {}
         Err(e) => {
-          transaction.fail(e.code());
+          transaction.fail(&e);
           return Err(e);
         }
       }

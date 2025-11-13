@@ -249,3 +249,9 @@ b *args: a && c
 
 c:
     echo Charlie
+
+x:
+    exit 123
+
+zzz:
+    sleep 10
