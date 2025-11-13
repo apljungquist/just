@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::color_display::ColorDisplay;
 use crate::error::Error;
 use log::{error, warn};
+use sentry::protocol::Event;
 use sentry::ClientInitGuard;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -83,7 +84,12 @@ impl Transaction {
       }
     });
 
-    sentry::capture_message("Sentry initialized", sentry::Level::Info);
+    sentry::capture_event(Event {
+      message: Some("Sentry initialized".to_string()),
+      level: sentry::Level::Info,
+      tags: [("recipe".to_string(), name.clone())].into_iter().collect(),
+      ..Default::default()
+    });
     sentry::capture_message(&format!("{name} started"), sentry::Level::Info);
     Self {
       transaction: Some(transaction),
